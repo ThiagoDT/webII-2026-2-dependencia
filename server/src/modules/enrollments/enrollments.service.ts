@@ -5,14 +5,14 @@ import { isForeignKeyViolation } from "../../database/foreign-key-violation";
 import { PgEnrollmentRepository } from "./enrollments.repository";
 
 export class EnrollmentsService {
-  private readonly repository = new PgEnrollmentRepository();
+  constructor(private readonly repository: PgEnrollmentRepository) {}
 
   async create(input: unknown) {
     const data = validateBody(input);
     const studentRa = positiveInteger(data.studentRa, "RA");
     const courseId = positiveInteger(data.courseId, "ID do curso");
     try {
-      return await this.repository.create(studentRa, courseId);
+      return await this.repository.create({ studentRa, courseId });
     } catch (error) {
       if (isForeignKeyViolation(error))
         throw new HttpError(
@@ -35,7 +35,7 @@ export class EnrollmentsService {
   async findOne(studentRa: number, courseId: number) {
     positiveInteger(studentRa, "RA");
     positiveInteger(courseId, "ID do curso");
-    const record = await this.repository.findOne(studentRa, courseId);
+    const record = await this.repository.findOne({ studentRa, courseId });
     if (!record) throw new HttpError(404, "Matrícula não encontrada.");
     return record;
   }
